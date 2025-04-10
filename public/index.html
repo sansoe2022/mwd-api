@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MWD Zay Admin</title>
+      <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- Bootstrap Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+  />
+
+      <style>
+    /* ===== Light Mode (Default) ===== */
+    body {
+      background-color: #f8f9fa;
+      color: #212529;
+    }
+
+    /* Day/Night Toggle Button (circular) */
+    .day-night-toggle {
+      background-color: #6c757d; /* secondary color or your own */
+      border: none;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      padding: 0;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .day-night-toggle i {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    /* ===== Dark Mode Overrides ===== */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .card,
+    body.dark-mode .modal-content {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      border-color: #343a40;
+    }
+    body.dark-mode .toast {
+      background-color: #333;
+      color: #fff;
+    }
+    body.dark-mode input.form-control,
+body.dark-mode textarea.form-control {
+  background-color: #2c2c2c;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-mode input.form-control:focus,
+body.dark-mode textarea.form-control:focus {
+  background-color: #2c2c2c !important;
+  color: #e0e0e0 !important;
+  border-color: #444 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Chrome Autofill Override */
+body.dark-mode input.form-control:-webkit-autofill {
+  background-color: #2c2c2c !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 0 0 30px #2c2c2c inset !important;
+}
+
+
+    /* List Group Items in Dark Mode */
+    body.dark-mode .list-group-item {
+      background-color: #2c2c2c;
+      color: #e0e0e0;
+      border-color: #444;
+    }
+
+    /* Dark Mode Buttons */
+    body.dark-mode .btn-outline-secondary {
+      color: #e0e0e0;
+      border-color: #e0e0e0;
+    }
+    body.dark-mode .btn-outline-danger {
+      color: #e0e0e0;
+      border-color: #dc3545;
+    }
+    /* Delete Button (btn-danger) -> solid red background, white text */
+    .btn-danger {
+      color: #fff;
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+    body.dark-mode .btn-danger {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    /* Modal Close Icon in Dark Mode (white X) */
+    body.dark-mode .btn-close {
+  filter: invert(1) grayscale(100%);
+}
+
+
+
+
+
+  </style>
+
+  
+</head>
+<body>
+<div class="container py-4">
+    <!-- Header with Toggle & Logout -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">MWD Zay Admin</h2>
+      <div class="d-flex align-items-center">
+        <!-- Day/Night Toggle Button using Bootstrap Icons -->
+        <button
+          id="modeToggleButton"
+          class="day-night-toggle me-2"
+          onclick="toggleMode()"
+        >
+          <!-- Default icon: moon (bi-moon-fill) -->
+          <i id="modeIcon" class="bi bi-moon-fill"></i>
+        </button>
+
+        <!-- Logout Button -->
+        <button
+          class="btn btn-outline-danger btn-sm"
+          onclick="logout()"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+  <p>Server: Linux</p>
+
+    <!-- Toast Container -->
+    <div
+      class="position-fixed bottom-0 end-0 p-3"
+      style="z-index: 11"
+    >
+      <div
+        id="toastMessage"
+        class="toast align-items-center text-white bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            <div id="messageDisplay" class="mt-3"></div>
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="dataDisplay" class="mt-3"></div>
+
+ <!-- Add Bill Modal -->
+    <div class="modal fade" id="addBillModal" tabindex="-1" aria-labelledby="addBillModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addBillModalLabel">မြန်မာ ဖုန်းဘေစျေး</h5>
+                    <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="thbBillInput" class="form-label">🇹🇭 THB</label>
+              <input type="text" class="form-control" id="thbBillInput">
+            </div>
+            <div class="mb-3">
+              <label for="mmkBillInput" class="form-label">🇲🇲 MMK</label>
+              <input type="text" class="form-control" id="mmkBillInput">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="addItem()">Add New Bill</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="billContainer" class="mt-3" style="display: none;">
+  <h4>မြန်မာ ဖုန်းဘေစျေး</h4>
+  <div class="mb-3">
+    <label for="thbBillInput" class="form-label">🇹🇭 THB</label>
+    <input type="text" class="form-control" id="thbBillInput">
+  </div>
+  <div class="mb-3">
+    <label for="mmkBillInput" class="form-label">🇲🇲 MMK</label>
+    <input type="text" class="form-control" id="mmkBillInput">
+  </div>
+  <button type="button" class="btn btn-success" onclick="addItem()">Add New Bill</button>
+</div>
+
+    <!-- Item Edit Modal -->
+<div class="modal fade" id="itemEditModal" tabindex="-1" aria-labelledby="itemEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="itemEditModalLabel">Edit Bill</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="itemEditForm">
+          <div class="mb-3">
+            <label for="editThbBill" class="form-label">🇹🇭 THB</label>
+            <input type="text" class="form-control" id="editThbBill" required>
+          </div>
+          <div class="mb-3">
+            <label for="editMmkBill" class="form-label">🇲🇲 MMK</label>
+            <input type="text" class="form-control" id="editMmkBill" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="dataFormModal" tabindex="-1" aria-labelledby="dataFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dataFormModalLabel">Edit Data</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="dataForm">
+            <div class="mb-3">
+              <label for="thRate" class="form-label">TH Rate</label>
+              <input type="number" class="form-control" id="thRate" required>
+            </div>
+            <div class="mb-3">
+              <label for="mmRate" class="form-label">MM Rate</label>
+              <input type="number" class="form-control" id="mmRate" required>
+            </div>
+            <div class="mb-3">
+              <label for="versionCode" class="form-label">Version Code</label>
+              <input type="number" class="form-control" id="versionCode" required>
+            </div>
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" id="title" required>
+            </div>
+            <div class="mb-3">
+              <label for="message" class="form-label">Message</label>
+              <textarea class="form-control" id="message" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="link" class="form-label">Link</label>
+              <input type="url" class="form-control" id="link" required>
+            </div>
+            <div class="mb-3">
+              <label for="items" class="form-label">ဖုန်းဘေ မြန်မာ (JSON String)</label>
+              <textarea class="form-control" id="items" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Data</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+
+    const apiUrl = 'https://vipdomain.online/rate/datas';
+    let currentId = null;
+    let currentDataIdForItem = null;
+    let currentItemId = null;
+    const token = localStorage.getItem('token');
+
+       // Toggle mode function
+    function toggleMode() {
+      document.body.classList.toggle("dark-mode");
+      const modeIcon = document.getElementById("modeIcon");
+      if (document.body.classList.contains("dark-mode")) {
+        // In dark mode, show sun icon (brightness-high-fill)
+        modeIcon.classList.remove("bi-moon-fill");
+        modeIcon.classList.add("bi-brightness-high-fill");
+        localStorage.setItem("mode", "dark");
+      } else {
+        // In light mode, show moon icon (moon-fill)
+        modeIcon.classList.remove("bi-brightness-high-fill");
+        modeIcon.classList.add("bi-moon-fill");
+        localStorage.setItem("mode", "light");
+      }
+    }
+
+    // On page load, load saved mode
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedMode = localStorage.getItem("mode");
+      const modeIcon = document.getElementById("modeIcon");
+      if (savedMode === "dark") {
+        document.body.classList.add("dark-mode");
+        modeIcon.classList.remove("bi-moon-fill");
+        modeIcon.classList.add("bi-brightness-high-fill");
+      } else {
+        document.body.classList.remove("dark-mode");
+        modeIcon.classList.remove("bi-brightness-high-fill");
+        modeIcon.classList.add("bi-moon-fill");
+      }
+    });
+
+    
+    if (!token) {
+      window.location.href = '/login.html'; // login page သို့ ပြန်ပို့ပါ။
+    }
+
+    async function checkUsers() {
+    try {
+      const response = await fetch('https://vipdomain.online/rate/users/check', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        // 404 ဖြစ်လည်း response.ok === false ဖြစ်တယ်
+        // Users မရှိတဲ့အခါ (သို့) Unauthorized ဖြစ်တဲ့အခါ
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Error checking users:', error);
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+  }
+
+    function logout() {
+  const confirmed = window.confirm("Are you sure you want to logout?");
+  if (confirmed) {
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+  }
+}
+
+
+
+    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = {
+        thRate: document.getElementById('thRate').value,
+        mmRate: document.getElementById('mmRate').value,
+        versionCode: document.getElementById('versionCode').value,
+        title: document.getElementById('title').value,
+        message: document.getElementById('message').value,
+        link: document.getElementById('link').value,
+        items: JSON.parse(document.getElementById('items').value),
+      };
+
+      try {
+        let response;
+        if (currentId) {
+          response = await fetch(`${apiUrl}/${currentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+          });
+        } else {
+          response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+          });
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to save data');
+        }
+        const result = await response.json();
+        showToast(result.message, true);
+//        document.getElementById('messageDisplay').innerHTML = `<p class="text-success">${result.message}</p>`;
+        checkUsers().then(() => {
+      // Users ရှိမှသာ data ကို fetch လုပ်မယ်
+      fetchData();
+    });
+        clearForm();
+
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('dataFormModal'));
+        modal.hide();
+      } catch (error) {
+        console.error('Error saving data:', error);
+        showToast('Failed to save data.', false);
+   //     document.getElementById('messageDisplay').innerHTML = `<p class="text-danger">Failed to save data.</p>`;
+      }
+    });
+
+    async function fetchData() {
+      try {
+        const response = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}` // token ကို Authorization header မှာထည့်ပါ။
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        displayData(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        showToast('Failed to save data.', false);
+    //    document.getElementById('dataDisplay').innerHTML = '<p>Failed to load data.</p>';
+      }
+    }
+
+async function editItem(dataId, itemId) {
+  try {
+    // Parent data record ကို dataId ဖြင့် fetch လုပ်ပါ
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch parent data');
+    }
+    const data = await response.json();
+
+    // items array ထဲမှ itemId ကို match လုပ်၍ item data ကို ရှာပါ
+    const itemToEdit = data.items.find(item => item._id === itemId);
+    if (!itemToEdit) {
+      throw new Error('Item not found');
+    }
+
+    // Item data ကို edit modal form အတွက် populate လုပ်ပါ
+    document.getElementById('editThbBill').value = itemToEdit.thbBill;
+    document.getElementById('editMmkBill').value = itemToEdit.mmkBill;
+
+    // Global variables များကို update လုပ်ပါ
+    currentDataIdForItem = dataId;
+    currentItemId = itemId;
+
+    // Item edit modal ကို open ပြပါ
+    const itemEditModal = new bootstrap.Modal(document.getElementById('itemEditModal'));
+    itemEditModal.show();
+  } catch (error) {
+    console.error('Error editing item:', error);
+   showToast(error.message, false);
+  }
+}
+
+// Item edit form submission event handler
+document.getElementById('itemEditForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  // Modal form မှ updated values များကို grab လုပ်ပါ
+  const updatedThbBill = document.getElementById('editThbBill').value;
+  const updatedMmkBill = document.getElementById('editMmkBill').value;
+
+  try {
+    // Parent data record ကို currentDataIdForItem ဖြင့် fetch လုပ်ပါ
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch parent data for update');
+    }
+    const data = await response.json();
+
+    // items array ထဲမှ currentItemId ကို ရှာ၍ index ကို ရယူပါ
+    const itemIndex = data.items.findIndex(item => item._id === currentItemId);
+    if (itemIndex === -1) {
+      throw new Error('Item not found in the parent data');
+    }
+
+    // Item data ကို update လုပ်ပါ
+    data.items[itemIndex].thbBill = updatedThbBill;
+    data.items[itemIndex].mmkBill = updatedMmkBill;
+
+    // Updated parent data record ကို API သို့ PUT request ဖြင့် update လုပ်ပါ
+    const updateResponse = await fetch(`${apiUrl}/${currentDataIdForItem}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update item');
+    }
+
+    const updateResult = await updateResponse.json();
+  //  document.getElementById('messageDisplay').innerHTML = `<p class="text-success">${updateResult.message}</p>`;
+showToast(updateResult.message, true);
+    // Data display ကို refresh ပြုလုပ်ပါ
+    fetchData();
+
+    // Item edit modal ကို close လုပ်ပါ
+    const itemEditModalEl = document.getElementById('itemEditModal');
+    const itemEditModalInstance = bootstrap.Modal.getInstance(itemEditModalEl);
+    if (itemEditModalInstance) {
+      itemEditModalInstance.hide();
+    }
+  } catch (error) {
+    console.error('Error updating item:', error);
+//    document.getElementById('messageDisplay').innerHTML = `<p class="text-danger">${error.message}</p>`;
+  showToast(error.message, false);
+  }
+});
+
+
+    async function deleteItem(dataId, itemId) {
+  const confirmed = window.confirm("Are you sure delete the item?");
+  if (!confirmed) {
+    return; // မျှော်လင့်ချက်မရပါက function ကိုရပ်တန့်
+  }
+
+  try {
+    const response = await fetch(`${apiUrl}/${dataId}/items/${itemId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete item');
+    }
+
+    const result = await response.json();
+    showToast(result.message, true);
+    fetchData(); // Data display ကို refresh ပြန်လုပ်ခြင်း
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    showToast('Failed to delete item.', false);
+  }
+}
+
+
+
+    function displayData(data) {
+      const dataDisplay = document.getElementById('dataDisplay');
+      dataDisplay.innerHTML = `
+        <div class="card mb-3">
+          <div class="card-body">
+            <p class="card-text">TH Rate: ${data.thRate}</p>
+            <p class="card-text">MM Rate: ${data.mmRate}</p>
+            <h5 class="card-title">${data.title}</h5>
+            <p class="card-text">${data.message}</p>
+            <p class="card-text">Version Code: ${data.versionCode}</p>
+            <ul class="list-group mb-3">
+              ${data.items.map(item => `
+                <li class="list-group-item">
+                  THB: ${item.thbBill}, MMK: ${item.mmkBill}
+                  <div class="btn-group float-end" role="group">
+                    <button class="btn btn-outline-success btn-sm" onclick="editItem('${data._id}', '${item._id}')">Edit</button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteItem('${data._id}', '${item._id}')">Delete</button>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning" onclick="editData()">Edit Data</button>
+              <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBillModal">Add New Bill</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function addItem() {
+  const thbBill = document.getElementById('thbBillInput').value;
+  const mmkBill = document.getElementById('mmkBillInput').value;
+
+  if (thbBill && mmkBill) {
+    try {
+      const newItem = { thbBill, mmkBill };
+
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      data.items.push(newItem);
+      
+      const saveResponse = await fetch(`${apiUrl}/${data._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!saveResponse.ok) throw new Error('Failed to save data');
+
+      const addBillModalEl = document.getElementById('addBillModal');
+    const addBillModal = bootstrap.Modal.getInstance(addBillModalEl);
+    if (addBillModal) {
+      addBillModal.hide();
+    }
+      showToast('Added new item bill', true);
+      
+      document.getElementById('thbBillInput').value = '';
+      document.getElementById('mmkBillInput').value = '';
+
+      fetchData();
+    } catch (error) {
+      console.error('Error adding item:', error);
+      alert('Failed to add item: ' + error.message);
+    }
+  } else {
+    alert('Please enter THB Bill and MMK Bill.');
+  }
+}
+
+    // Modal ပိတ်တိုင်း input များကို clear လုပ်ရန်
+    document.getElementById('addBillModal').addEventListener('hidden.bs.modal', function () {
+      document.getElementById('thbBillInput').value = '';
+      document.getElementById('mmkBillInput').value = '';
+    });
+
+    async function editData() {
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+
+    // Form fields များကို fetched data ဖြင့် populate လုပ်ခြင်း
+    document.getElementById('thRate').value = data.thRate;
+    document.getElementById('mmRate').value = data.mmRate;
+    document.getElementById('versionCode').value = data.versionCode;
+    document.getElementById('title').value = data.title;
+    document.getElementById('message').value = data.message;
+    document.getElementById('link').value = data.link;
+    document.getElementById('items').value = JSON.stringify(data.items);
+    currentId = data._id; // သို့မဟုတ် id variable ကို ပြန်သတ်မှတ်ပါ
+
+    // Modal ကို ဖွင့်ခြင်း
+    const modal = new bootstrap.Modal(document.getElementById('dataFormModal'));
+    modal.show();
+  } catch (error) {
+    console.error('Error fetching data for edit:', error);
+
+    // Modal content ကို error message ဖြင့် update လုပ်ခြင်း
+    const modalContent = document.getElementById('dataFormModal').querySelector('.modal-content');
+    modalContent.innerHTML = `
+      <div class="modal-header">
+        <h5 class="modal-title">Error</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-danger">${error.message}</p>
+      </div>
+    `;
+
+    // Error modal ကို ဖွင့်ခြင်း
+    const modal = new bootstrap.Modal(document.getElementById('dataFormModal'));
+    modal.show();
+  }
+}
+
+
+function showToast(message, isSuccess = true) {
+  const toastEl = document.getElementById('toastMessage');
+  const toastBody = toastEl.querySelector('.toast-body');
+
+  // Message ကို update လုပ်ပါ
+  toastBody.textContent = message;
+
+  // Toast color ပြောင်းရန်
+  toastEl.classList.remove('bg-success', 'bg-danger');
+  toastEl.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
+
+  // Bootstrap Toast ကို initialize & show လုပ်ရန်
+  const toast = new bootstrap.Toast(toastEl);
+  toast.show();
+}
+
+
+
+    function clearForm() {
+      document.getElementById('thRate').value = '';
+      document.getElementById('mmRate').value = '';
+      document.getElementById('versionCode').value = '';
+      document.getElementById('title').value = '';
+      document.getElementById('message').value = '';
+      document.getElementById('link').value = '';
+      document.getElementById('items').value = '';
+      currentId = null;
+    }
+
+
+    
+    fetchData();
+  </script>
+</body>
+</html>
